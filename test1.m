@@ -2,9 +2,9 @@ c = physconst('lightspeed');
 freq = 300e6;
 lambda = c/freq;
 
-L = [lambda/2];...   % length of parasite 2
+L = [4*lambda];...   % length of parasite 2
 x = [0];      % location of wires on the x axis
-dz = lambda/40;    % length of a discrete segment
+dz = lambda/100;    % length of a discrete segment
 a = 0.005;          % radius of the wires
 
 [R, z, Ez, N] = computeR(L,x,dz,a);
@@ -23,16 +23,32 @@ nfigures = length(L);
 
 figure(1)
 clf
+% Jz = abs(real(Jz));
 for i=2:nfigures+1
     subplot(nfigures,1,i-1)
-    stem(z(dummyN(i-1) + 1 : dummyN(i)), abs(Jz(dummyN(i-1) + 1 : dummyN(i))))
+    plot(z(dummyN(i-1) + 1 : dummyN(i)), db(abs(real(Jz(dummyN(i-1) + 1 : dummyN(i))))))
+    hold on
+    plot(z(dummyN(i-1) + 1 : dummyN(i)), db(abs(imag(Jz(dummyN(i-1) + 1 : dummyN(i))))))
 	xlim([min(z) max(z)]*1.05)
-    ylim([min(abs(Jz)) max(abs(Jz))])
+%     ylim(db([min(Jz) max(Jz)]))
+    grid on
     xlabel('z')
-    ylabel('|J|')
+    ylabel('J (dB)')
+    legend('Real','Imag')
 end
 
 figure(2)
-imagesc(pow2db(abs(A)))
+clf
+for i=2:nfigures+1
+    subplot(nfigures,1,i-1)
+    plot(z(dummyN(i-1) + 1 : dummyN(i)), db(abs(Jz(dummyN(i-1) + 1 : dummyN(i)))))
+	xlim([min(z) max(z)]*1.05)
+    ylim(db([min(abs(Jz)) max(abs(Jz))]))
+    xlabel('z')
+    ylabel('|J| (dB)')
+end
+
+figure(3)
+imagesc(abs(A))
 colorbar
 title('10log10(A)')
