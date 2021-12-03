@@ -2,10 +2,12 @@ c = physconst('lightspeed');
 freq = 300e6;
 lambda = c/freq;
 
-L = [4*lambda];...   % length of parasite 2
-x = [0];      % location of wires on the x axis
-dz = lambda/100;    % length of a discrete segment
+L = [2*lambda, lambda, lambda];      % length of parasite 2
+x = [0, lambda/4, lambda/2];      % location of wires on the x axis
+dz = lambda/45;    % length of a discrete segment
 a = 0.005;          % radius of the wires
+
+t0 = atan(dz/2/a);
 
 [R, z, Ez, N] = computeR(L,x,dz,a);
 
@@ -15,6 +17,14 @@ G1 = (- 1 - 1i*k*R + k^2*R.^2) ./ (R.^3);
 G2 = (  3 + 3i*k*R - k^2*R.^2) ./ (R.^5);
 
 A = (G1 + (z-z').^2.*G2).*exp(-1i*k*R);
+% A = A - diag(diag(A)) + A(1,2)*1.5;
+% A = A - diag(real(diag(A)));
+
+[M,~] = size(A);
+for m=1:M
+    A(m,m) = (2/(a^2*dz))*(sin(t0*((a*k)^2)-1) + (1j*a*k*t0)/2 - ...
+        (3/4)*(1j*a*k*sin(2*t0)) + (sin(t0)^3));
+end
 
 Jz = A\Ez
 
@@ -34,8 +44,8 @@ for i=2:nfigures+1
     grid on
     xlabel('z')
     ylabel('J (dB)')
-    legend('Real','Imag')
 end
+legend('Real','Imag')
 
 figure(2)
 clf
@@ -49,6 +59,12 @@ for i=2:nfigures+1
 end
 
 figure(3)
-imagesc(abs(A))
+imagesc(db(abs(A)))
+axis equal
 colorbar
-title('10log10(A)')
+title('A')
+
+for i=1:3
+    figure(i)
+    exportgraphics(gcf, sprintf('fig_%d.png', i), 'resolution', 400)
+end
